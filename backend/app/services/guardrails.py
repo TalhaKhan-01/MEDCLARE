@@ -1,0 +1,134 @@
+"""Safety & Guardrail Layer — detects unsafe claims and enforces citation presence."""
+import re
+from typing import Dict, List
+
+# Phrases that indicate diagnostic claims (should be flagged)
+DIAGNOSTIC_PATTERNS = [
+    r'\byou have\b',
+    r'\byou are diagnosed\b',
+    r'\bthis confirms\b',
+    r'\bthis means you have\b',
+    r'\byou are suffering from\b',
+    r'\bdefinitely\b',
+    r'\bcertainly indicates\b',
+    r'\bproves that\b',
+    r'\bno doubt\b',
+    r'\bwithout question\b',
+]
+
+# Safe alternative phrases
+SAFE_ALTERNATIVES = {
+    "you have": "this may suggest",
+    "this confirms": "this is consistent with",
+    "definitely": "may potentially",
+    "certainly indicates": "could be associated with",
+    "proves that": "is commonly associated with",
+}
+
+def check_guardrails(explanation_result: Dict) -> Dict:
+    """
+    Run guardrail checks on the generated explanation.
+    Returns the explanation with guardrail flags and modifications.
+    """
+    flags = []
+    text = explanation_result.get("explanation_text", "")
+    sections = explanation_result.get("sections", [])
+    citations = explanation_result.get("citations", [])
+    
+    # 1. Check for diagnostic language
+    diagnostic_flags = _check_diagnostic_language(text)
+    for section in sections:
+        diagnostic_flags.extend(_check_diagnostic_language(section.get("content", "")))
+    if diagnostic_flags:
+        flags.append({
+            "type": "diagnostic_language",
+            "severity": "warning",
+            "details": diagnostic_flags,
+            "message": "Diagnostic language detected and should be softened"
+        })
+    
+    # 2. Check citation presence
+    citation_issues = _check_citation_presence(sections, citations)
+    if citation_issues:
+        flags.append({
+            "type": "missing_citations",
+            "severity": "warning",
+            "details": citation_issues,
+            "message": "Some claims lack supporting citations"
+        })
+    
+    # 3. Check for uncertainty labeling
+    uncertainty_flags = _check_uncertainty(text, sections)
+    if uncertainty_flags:
+        flags.append({
+            "type": "insufficient_uncertainty",
+            "severity": "info",
+            "details": uncertainty_flags,
+            "message": "Consider adding more uncertainty qualifiers"
+        })
+    
+    # 4. Check for alarmist language
+    alarm_flags = _check_alarmist_language(text, sections)
+    if alarm_flags:
+        flags.append({
+            "type": "alarmist_language",
+            "severity": "warning",
+            "details": alarm_flags,
+            "message": "Language may cause unnecessary anxiety"
+        })
+    
+    # 5. Ensure disclaimer is present
+    disclaimer = explanation_result.get("disclaimer") or _default_disclaimer()
+    
+    explanation_result["guardrail_flags"] = flags
+    explanation_result["guardrail_passed"] = len([f for f in flags if f["severity"] == "warning"]) == 0
+    explanation_result["disclaimer"] = disclaimer
+    
+    return explanation_result
+
+def _check_diagnostic_language(text: str) -> List[str]:
+    issues = []
+    for pattern in DIAGNOSTIC_PATTERNS:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            issues.extend(matches)
+    return issues
+
+def _check_citation_presence(sections: List[Dict], citations: List[Dict]) -> List[str]:
+    issues = []
+    citation_ids = {c.get("id") for c in citations}
+    for section in sections:
+        content = section.get("content", "")
+        if section.get("severity") in ("attention", "concern"):
+            # Abnormal findings should have citations
+            found_citations = re.findall(r'\[(\d+)\]', content)
+            if not found_citations:
+                issues.append(f"Section '{section.get('title')}' lacks citation references")
+    return issues
+
+def _check_uncertainty(text: str, sections: List[Dict]) -> List[str]:
+    uncertainty_markers = ["may", "could", "might", "suggest", "indicate", "associated", "possible"]
+    issues = []
+    for section in sections:
+        if section.get("severity") in ("attention", "concern"):
+            content = section.get("content", "").lower()
+            has_uncertainty = any(marker in content for marker in uncertainty_markers)
+            if not has_uncertainty:
+                issues.append(f"Section '{section.get('title')}' may need uncertainty qualifiers")
+    return issues
+
+def _check_alarmist_language(text: str, sections: List[Dict]) -> List[str]:
+    alarmist_words = ["dangerous", "alarming", "severe", "critical condition", "emergency",
+                      "life-threatening", "fatal", "deadly", "extremely worried", "panic"]
+    issues = []
+    all_text = text + " " + " ".join(s.get("content", "") for s in sections)
+    for word in alarmist_words:
+        if word.lower() in all_text.lower():
+            issues.append(f"Alarmist term detected: '{word}'")
+    return issues
+
+def _default_disclaimer() -> str:
+    return ("This interpretation is generated by an AI system and is intended for informational purposes only. "
+            "It does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare "
+            "professional for medical decisions. The results shown have been verified against reference ranges but "
+            "individual clinical context may affect interpretation.")

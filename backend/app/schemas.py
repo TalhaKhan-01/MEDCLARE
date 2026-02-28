@@ -72,6 +72,8 @@ class ReportOut(BaseModel):
     doctor_notes: Optional[str] = None
     report_type: str
     lang: str
+    review_requested: bool = False
+    patient_note: Optional[str] = None
     findings: List[FindingOut] = []
     medications: List[MedicationOut] = []
     created_at: datetime
@@ -86,6 +88,8 @@ class ReportListOut(BaseModel):
     file_type: str
     overall_confidence: Optional[float] = None
     verification_status: Optional[str] = None
+    review_requested: bool = False
+    patient_name: Optional[str] = None
     created_at: datetime
     class Config:
         from_attributes = True
@@ -113,3 +117,59 @@ class VersionOut(BaseModel):
 class ProcessRequest(BaseModel):
     personalization_level: str = "standard"
     lang: str = "en"
+
+# ── Evaluation ──
+class EvaluationRunRequest(BaseModel):
+    gold_standard: Optional[str] = None
+
+class EvaluationOut(BaseModel):
+    id: str
+    report_id: str
+    completeness_score: float
+    safety_score: float
+    citation_density: float
+    hallucination_risk: float
+    overall_score: float
+    grade: str
+    details: Optional[Any] = None
+    evaluated_by: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+# ── Trends ──
+class TrendDataPoint(BaseModel):
+    report_id: str
+    date: Optional[str] = None
+    value: str
+    numeric_value: Optional[float] = None
+    unit: str = ""
+    status: str = "unknown"
+    reference_range: str = ""
+    is_current: bool = False
+
+class TrendStats(BaseModel):
+    min: float
+    max: float
+    average: float
+    measurement_count: int
+
+class TrendItem(BaseModel):
+    parameter: str
+    direction: str
+    change_percent: float
+    current_value: str
+    previous_value: str
+    unit: str = ""
+    current_status: str = "unknown"
+    data_points: List[TrendDataPoint] = []
+    stats: Optional[TrendStats] = None
+
+class TrendsOut(BaseModel):
+    has_history: bool
+    report_count: int
+    trends: List[TrendItem] = []
+    summary: str = ""
+    improving_count: Optional[int] = 0
+    worsening_count: Optional[int] = 0
+    stable_count: Optional[int] = 0

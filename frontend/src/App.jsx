@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import ReportView from './pages/ReportView';
 import DoctorReview from './pages/DoctorReview';
+import Evaluation from './pages/Evaluation';
+import Footer from './components/Footer';
 
 function ProtectedRoute({ children, requiredRole }) {
     const { user, loading } = useAuth();
@@ -30,7 +32,9 @@ function AppRoutes() {
                 <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
                 <Route path="/report/:id" element={<ProtectedRoute><ReportView /></ProtectedRoute>} />
                 <Route path="/review/:id" element={<ProtectedRoute requiredRole="doctor"><DoctorReview /></ProtectedRoute>} />
+                <Route path="/evaluation" element={<ProtectedRoute requiredRole="doctor"><Evaluation /></ProtectedRoute>} />
             </Routes>
+            <Footer />
         </>
     );
 }

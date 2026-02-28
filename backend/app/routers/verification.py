@@ -21,11 +21,12 @@ def verify_report(
     if report.status not in ("explained", "edited"):
         raise HTTPException(status_code=400, detail="Report not ready for verification")
     
-    report.verification_status = body.action
+    is_approved = body.action == "approve"
+    report.verification_status = "approved" if is_approved else "rejected"
     report.verified_by = user.id
     report.verified_at = datetime.utcnow()
     report.doctor_notes = body.notes
-    report.status = "verified" if body.action == "approve" else "rejected"
+    report.status = "verified" if is_approved else "rejected"
     
     audit = AuditLog(report_id=report.id, user_id=user.id, action=f"verification_{body.action}",
                      details={"notes": body.notes})

@@ -103,6 +103,7 @@ CRITICAL RULES:
 6. Clearly distinguish between normal results, abnormal results, and general medical instructions.
 7. Express uncertainty when text is unclear or evidence is limited.
 8. Always include "Recommended Actions" (e.g., "Follow the prescribed course", "Consult your doctor").
+9. For each section, provide a "source_mapping" array that traces each key claim back to its source.
 
 OUTPUT FORMAT (JSON):
 {{
@@ -112,7 +113,10 @@ OUTPUT FORMAT (JSON):
       "title": "Category Name in {target_lang} (e.g. Medications, Hematology, Instructions)",
       "content": "Detailed explanation in {target_lang} with [N] citations where applicable",
       "findings_covered": ["Test1", "MedicationA"],
-      "severity": "normal|attention|concern"
+      "severity": "normal|attention|concern",
+      "source_mapping": [
+        {{"sentence": "Key claim sentence", "source_type": "finding|evidence|document", "source_ref": "Test name or citation ID or 'original document'"}}
+      ]
     }}
   ],
   "citations": [

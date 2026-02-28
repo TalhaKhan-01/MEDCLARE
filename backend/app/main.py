@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, reports, verification
+from app.routers import auth, reports, verification, evaluation
 from app import models  # Ensure models are registered for create_all
 
 @asynccontextmanager
@@ -29,6 +29,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(reports.router)
 app.include_router(verification.router)
+app.include_router(evaluation.router)
 
 @app.get("/")
 def root():

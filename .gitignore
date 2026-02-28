@@ -81,3 +81,6 @@ simulate_eval.py
 verify_universal.py
 final_init.py
 ORI68O1755239971973_RLS.pdf
+
+# Vite
+.vite/

@@ -33,6 +33,9 @@ export const listReports = () => api.get('/reports/');
 export const getReport = (id) => api.get(`/reports/${id}`);
 export const processReport = (id, level = 'standard', lang = 'en') =>
     api.post(`/reports/${id}/process`, { personalization_level: level, lang });
+export const deleteReport = (id) => api.delete(`/reports/${id}`);
+export const restoreReport = (id) => api.post(`/reports/${id}/restore`);
+export const requestReview = (id, note) => api.post(`/reports/${id}/request-review`, { note });
 
 // Verification
 export const verifyReport = (id, action, notes) =>
@@ -40,5 +43,14 @@ export const verifyReport = (id, action, notes) =>
 export const editExplanation = (id, text, notes) =>
     api.post(`/reports/${id}/edit`, { explanation_text: text, notes });
 export const getVersions = (id) => api.get(`/reports/${id}/versions`);
+
+// Trends
+export const getReportTrends = (id) => api.get(`/reports/${id}/trends`);
+
+// Evaluation
+export const runEvaluation = (reportId, goldStandard) =>
+    api.post(`/evaluation/run/${reportId}`, { gold_standard: goldStandard || null });
+export const getEvaluationBenchmark = () => api.get('/evaluation/benchmark');
+export const getReportEvaluations = (reportId) => api.get(`/evaluation/${reportId}`);
 
 export default api;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { listReports } from '../api';
+import { listReports, deleteReport, restoreReport } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
@@ -9,13 +9,62 @@ export default function Dashboard() {
     const { t } = useTranslation();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);
+    const [undoTimer, setUndoTimer] = useState(null);
+    const [countdown, setCountdown] = useState(10);
 
-    useEffect(() => {
+    const fetchReports = () => {
         listReports()
             .then(res => setReports(res.data))
             .catch(console.error)
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchReports();
     }, []);
+
+    const handleDelete = (e, reportId) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setDeletingId(reportId);
+        setCountdown(10);
+
+        // Optimistically remove from UI
+        const reportToRestore = reports.find(r => r.id === reportId);
+        setReports(prev => prev.filter(r => r.id !== reportId));
+
+        deleteReport(reportId).then(() => {
+            const timer = setInterval(() => {
+                setCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setDeletingId(null);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            setUndoTimer(timer);
+        }).catch(err => {
+            console.error(err);
+            setReports(prev => [reportToRestore, ...prev]);
+            setDeletingId(null);
+        });
+    };
+
+    const handleUndo = () => {
+        if (!deletingId) return;
+
+        if (undoTimer) clearInterval(undoTimer);
+
+        restoreReport(deletingId).then(() => {
+            setDeletingId(null);
+            setUndoTimer(null);
+            fetchReports();
+        }).catch(console.error);
+    };
 
     const stats = {
         total: reports.length,
@@ -80,26 +129,50 @@ export default function Dashboard() {
                                 to={user.role === 'doctor' ? `/review/${report.id}` : `/report/${report.id}`}
                                 className="report-row"
                             >
-                                <div>
-                                    <div className="report-row-title">{report.title}</div>
-                                    <div className="report-row-date">{formatDate(report.created_at)}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <div className="report-row-title">
+                                            {user.role === 'doctor' ? `👤 Patient: ${report.patient_name || 'Unknown'}` : report.title}
+                                        </div>
+                                        <div className="report-row-date">{formatDate(report.created_at)}</div>
+                                    </div>
+                                    <span className={`badge status-${report.status}`}>
+                                        {t(`upload.pipeline.${report.status}`) || report.status}
+                                    </span>
+                                    {report.verification_status && (
+                                        <span className={`badge ${report.verification_status === 'approved' ? 'badge-normal' : 'badge-critical'
+                                            }`}>
+                                            {report.verification_status === 'approved' ? `✓ ${t('dashboard.verified')}` : `✗ Rejected`}
+                                        </span>
+                                    )}
+                                    {report.overall_confidence && (
+                                        <span className="badge badge-info">
+                                            {Math.round(report.overall_confidence * 100)}% {t('landing.confidence').toLowerCase()}
+                                        </span>
+                                    )}
+                                    {user.role === 'patient' && (
+                                        <button
+                                            onClick={(e) => handleDelete(e, report.id)}
+                                            className="btn-icon-delete"
+                                            title="Delete Report"
+                                        >
+                                            🗑️
+                                        </button>
+                                    )}
                                 </div>
-                                <span className={`badge status-${report.status}`}>
-                                    {t(`upload.pipeline.${report.status}`) || report.status}
-                                </span>
-                                {report.verification_status && (
-                                    <span className={`badge ${report.verification_status === 'approved' ? 'badge-normal' : 'badge-critical'
-                                        }`}>
-                                        {report.verification_status === 'approved' ? `✓ ${t('dashboard.verified')}` : `✗ Rejected`}
-                                    </span>
-                                )}
-                                {report.overall_confidence && (
-                                    <span className="badge badge-info">
-                                        {Math.round(report.overall_confidence * 100)}% {t('landing.confidence').toLowerCase()}
-                                    </span>
-                                )}
                             </Link>
                         ))}
+                    </div>
+                )}
+
+                {deletingId && (
+                    <div className="undo-toast">
+                        <div className="undo-toast-content">
+                            <span>Reporting deleting in {countdown}s...</span>
+                            <button onClick={handleUndo} className="btn-undo">
+                                Undo
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

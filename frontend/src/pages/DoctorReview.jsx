@@ -86,7 +86,7 @@ export default function DoctorReview() {
 
                 <div className="page-header">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <h1 className="page-title">🩺 {t('dashboard.doctorTitle')}: {report.title}</h1>
+                        <h1 className="page-title">🩺 {t('dashboard.doctorTitle')}: {report.patient_name || report.title}</h1>
                         {langMismatch && (
                             <button
                                 className="btn btn-primary"
@@ -127,6 +127,18 @@ export default function DoctorReview() {
                         </div>
                     </div>
                 </div>
+
+                {/* Patient's Note (Option C) */}
+                {report.review_requested && (
+                    <div className="card" style={{ marginBottom: 'var(--space-6)', borderLeft: '4px solid var(--color-accent-purple)' }}>
+                        <h3 style={{ fontSize: 'var(--fs-base)', fontWeight: 600, color: 'var(--color-accent-purple)', marginBottom: 'var(--space-2)' }}>
+                            📩 Patient's Note
+                        </h3>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                            "{report.patient_note || 'No specific note provided.'}"
+                        </div>
+                    </div>
+                )}
 
                 {/* Findings Overview */}
                 {abnormalFindings.length > 0 && (
@@ -248,6 +260,6 @@ export default function DoctorReview() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

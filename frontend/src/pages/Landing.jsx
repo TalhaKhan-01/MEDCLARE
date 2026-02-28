@@ -1,19 +1,56 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Aurora from '../components/Visuals/Aurora/Aurora';
 
 export default function Landing() {
     const { t } = useTranslation();
 
     return (
-        <div className="landing-hero">
-            <div className="landing-content">
+        <div className="landing-hero" style={{ position: 'relative', overflow: 'hidden', background: 'var(--color-bg-primary)' }}>
+            {/* Animated Aurora Background */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.5 }}>
+                <Aurora
+                    colorStops={['#0D9488', '#F59E0B', '#134E4A']}
+                    amplitude={1.2}
+                    speed={0.5}
+                />
+            </div>
+
+            {/* Background Watermark */}
+            <img src="/Logo.png" alt="" style={{
+                position: 'absolute',
+                top: '10%',
+                right: '-5%',
+                width: '600px',
+                height: '600px',
+                opacity: 0.02,
+                filter: 'grayscale(100%) contrast(0.5) blur(1px)',
+                pointerEvents: 'none',
+                zIndex: 1,
+                transform: 'rotate(-15deg)'
+            }} />
+
+            <div className="landing-content" style={{ position: 'relative', zIndex: 2 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--space-10)' }}>
+                    <img src="/Logo.png" alt="MEDCLARE Logo" style={{
+                        width: '120px', height: 'auto',
+                        objectFit: 'contain',
+                        marginBottom: 'var(--space-4)',
+                        filter: 'drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5))'
+                    }} />
+                    <div className="brand-identity-stack">
+                        <span className="navbar-logo-text" style={{ fontSize: 'var(--fs-3xl)' }}>MEDCLARE</span>
+                        <span className="brand-tagline" style={{ fontSize: 'var(--fs-base)', letterSpacing: '0.2em' }}>YOUR HEALTH, CLARIFIED</span>
+                    </div>
+                </div>
+
                 <div className="landing-badge">
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-accent-green)', display: 'inline-block' }} />
                     {t('landing.badge')}
                 </div>
 
                 <h1 className="landing-title">
-                    {t('landing.title').split(' Clarity')[0]} <span>{t('landing.title').includes(' Clarity') || t('landing.title').includes('स्पष्टता') ? (t('landing.title').includes(' Clarity') ? 'Clarity' : 'स्पष्टता') : 'Clarity'}</span>
+                    {t('landing.title').split(' Clarity')[0]} <span>Clarity</span>
                 </h1>
 
                 <p className="landing-description">

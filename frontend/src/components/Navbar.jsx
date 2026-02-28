@@ -20,26 +20,14 @@ export default function Navbar() {
 
     if (!user) return (
         <nav className="navbar">
-            <div className="navbar-inner">
+            <div className="navbar-inner" style={{ justifyContent: 'center' }}>
                 <Link to="/" className="navbar-logo">
-                    <div className="navbar-logo-icon">M</div>
-                    <span className="navbar-logo-text">MEDCLARE</span>
-                </Link>
-                <div className="navbar-nav">
-                    <div className="lang-switcher">
-                        <select
-                            value={i18n.language}
-                            onChange={(e) => i18n.changeLanguage(e.target.value)}
-                            className="lang-select"
-                        >
-                            {languages.map(lang => (
-                                <option key={lang.code} value={lang.code}>
-                                    {lang.icon} {lang.name}
-                                </option>
-                            ))}
-                        </select>
+                    <img src="/Logo.png" alt="MEDCLARE" style={{ height: '42px', width: 'auto', objectFit: 'contain' }} />
+                    <div className="brand-identity-stack">
+                        <span className="navbar-logo-text">MEDCLARE</span>
+                        <span className="brand-tagline">YOUR HEALTH, CLARIFIED</span>
                     </div>
-                </div>
+                </Link>
             </div>
         </nav>
     );
@@ -48,12 +36,18 @@ export default function Navbar() {
         <nav className="navbar">
             <div className="navbar-inner">
                 <Link to="/dashboard" className="navbar-logo">
-                    <div className="navbar-logo-icon">M</div>
-                    <span className="navbar-logo-text">MEDCLARE</span>
+                    <img src="/Logo.png" alt="MEDCLARE" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+                    <div className="brand-identity-stack">
+                        <span className="navbar-logo-text">MEDCLARE</span>
+                        <span className="brand-tagline">YOUR HEALTH, CLARIFIED</span>
+                    </div>
                 </Link>
                 <ul className="navbar-nav">
                     <li><Link to="/dashboard" className="navbar-link">{t('navbar.reports')}</Link></li>
                     <li><Link to="/upload" className="navbar-link">{t('navbar.upload')}</Link></li>
+                    {user.role === 'doctor' && (
+                        <li><Link to="/evaluation" className="navbar-link">🧪 Evaluation</Link></li>
+                    )}
                     <li className="navbar-user">
                         <div className="lang-switcher" style={{ marginRight: '1rem' }}>
                             <select

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { register as registerApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import Particles from '../components/Visuals/Particles/Particles';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -30,12 +31,26 @@ export default function Register() {
     const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
     return (
-        <div className="auth-page">
-            <div className="auth-card card">
+        <div className="auth-page" style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+                <Particles
+                    particleCount={150}
+                    particleSpread={15}
+                    speed={0.2}
+                    particleColors={['#ffffff', '#0D9488', '#F59E0B']}
+                    moveParticlesOnHover={true}
+                    particleHoverFactor={2}
+                    alphaParticles={true}
+                />
+            </div>
+            <div className="auth-card card" style={{ position: 'relative', zIndex: 1 }}>
                 <div className="auth-header">
-                    <div className="navbar-logo" style={{ justifyContent: 'center', marginBottom: '1.5rem' }}>
-                        <div className="navbar-logo-icon">M</div>
-                        <span className="navbar-logo-text">MEDCLARE</span>
+                    <div className="navbar-logo" style={{ justifyContent: 'center', marginBottom: '2rem' }}>
+                        <img src="/Logo.png" alt="MEDCLARE" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
+                        <div className="brand-identity-stack" style={{ textAlign: 'left' }}>
+                            <span className="navbar-logo-text" style={{ fontSize: 'var(--fs-2xl)' }}>MEDCLARE</span>
+                            <span className="brand-tagline" style={{ fontSize: '0.75rem' }}>YOUR HEALTH, CLARIFIED</span>
+                        </div>
                     </div>
                     <h2 className="auth-title">{t('auth.createAccount')}</h2>
                     <p className="auth-subtitle">{t('auth.registerSubtitle')}</p>

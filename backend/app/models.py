@@ -42,6 +42,9 @@ class Report(Base):
     doctor_notes = Column(Text, nullable=True)
     report_type = Column(String, default="lab_report")  # lab_report | prescription | advice
     lang = Column(String, default="en")  # en|hi|te|ta|or|ml|bn|pa|mr
+    is_deleted = Column(Boolean, default=False)
+    review_requested = Column(Boolean, default=False)
+    patient_note = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     patient = relationship("User", back_populates="reports", foreign_keys=[patient_id])
@@ -95,3 +98,19 @@ class AuditLog(Base):
     details = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     report = relationship("Report", back_populates="audit_logs")
+
+class EvaluationResult(Base):
+    __tablename__ = "evaluation_results"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    report_id = Column(String, ForeignKey("reports.id"), nullable=False)
+    completeness_score = Column(Float, nullable=False, default=0.0)
+    safety_score = Column(Float, nullable=False, default=0.0)
+    citation_density = Column(Float, nullable=False, default=0.0)
+    hallucination_risk = Column(Float, nullable=False, default=0.0)
+    overall_score = Column(Float, nullable=False, default=0.0)
+    grade = Column(String, nullable=False, default="C")
+    details = Column(JSON, nullable=True)
+    gold_standard = Column(Text, nullable=True)
+    evaluated_by = Column(String, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    report = relationship("Report")

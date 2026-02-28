@@ -138,6 +138,15 @@ async def run_pipeline(report_id: str, personalization_level: str, db: Session, 
         report.confidence_scores = confidence
         report.overall_confidence = confidence["overall"]
         
+        # ── Stage 8: Certainty Tagging ──
+        from app.services.certainty import tag_certainty
+        personalized = tag_certainty(personalized, confidence)
+        
+        reasoning_trace["stages"].append({
+            "stage": "certainty_tagging",
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        
         # ── Save Results ──
         report.explanation_text = personalized.get("explanation_text", "")
         report.explanation_sections = personalized.get("sections", [])
